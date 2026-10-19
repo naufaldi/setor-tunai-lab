@@ -5,6 +5,8 @@ import {
   countAmount,
   DepositError,
   validateAccountNo,
+  validateActor,
+  validateReason,
   validateStan,
   validateTerminalId,
   type Deposit,
@@ -99,14 +101,54 @@ export function createDepositService(db: Db, now: Clock = systemClock) {
     return get(id);
   }
 
+  function inTransaction<T>(fn: () => T): T {
+    db.exec("BEGIN IMMEDIATE");
+    try {
+      const result = fn();
+      db.exec("COMMIT");
+      return result;
+    } catch (err) {
+      db.exec("ROLLBACK");
+      throw err;
+    }
+  }
+
+  function recordEvent(
+    depositId: string,
+    action: "PENDING" | "RESOLVED" | "REVERSED",
+    input: { actor: string; reason: string },
+    at: string,
+  ): void {
+    db.prepare(
+      "INSERT INTO deposit_events (deposit_id, action, actor, reason, created_at) VALUES (?, ?, ?, ?, ?)",
+    ).run(depositId, action, input.actor, input.reason, at);
+  }
+
+  // Setoran COUNTED yang belum jelas hasilnya di host (timeout) ditandai PENDING. Ledger tidak disentuh.
+  function markPending(id: string, input: { actor: string; reason: string }): Deposit {
+    validateActor(input.actor);
+    validateReason(input.reason);
+    return inTransaction(() => {
+      const dep = get(id);
+      if (dep.status === "PENDING") return dep;
+      if (dep.status !== "COUNTED") throw new DepositError("INVALID_STATE", `status ${dep.status} tidak bisa ditandai pending`);
+      db.prepare("UPDATE deposits SET status = 'PENDING' WHERE id = ? AND status = 'COUNTED'").run(id);
+      recordEvent(id, "PENDING", input, now());
+      return get(id);
+    });
+  }
+
   function cancel(id: string): Deposit {
     const dep = get(id);
     if (dep.status === "POSTED") throw new DepositError("INVALID_STATE", "setoran yang sudah diposting tidak bisa dibatalkan");
+    if (dep.status === "PENDING" || dep.status === "REVERSED") {
+      throw new DepositError("INVALID_STATE", `status ${dep.status} tidak bisa dibatalkan`);
+    }
     db.prepare("UPDATE deposits SET status = 'CANCELLED' WHERE id = ?").run(id);
     return get(id);
   }
 
-  return { get, start, recordCount, confirm, cancel };
+  return { get, start, recordCount, confirm, cancel, markPending };
 }
 
 export type DepositService = ReturnType<typeof createDepositService>;
