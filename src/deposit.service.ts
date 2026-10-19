@@ -80,6 +80,8 @@ export function createDepositService(db: Db, now: Clock = systemClock) {
     if (seen) return get(seen.deposit_id);
 
     const dep = get(id);
+    // Retry CRM memakai requestId baru dengan STAN sama: setoran sudah diposting, jangan posting lagi.
+    if (dep.status === "POSTED" && dep.stan === input.stan) return dep;
     if (!canConfirm(dep)) throw new DepositError("INVALID_STATE", `status ${dep.status} tidak bisa dikonfirmasi`);
 
     const at = now();
@@ -93,7 +95,7 @@ export function createDepositService(db: Db, now: Clock = systemClock) {
       ref: `${dep.terminalId}/${input.stan}`,
       at,
     });
-    db.prepare("UPDATE deposits SET status = 'POSTED', stan = ? WHERE id = ? AND status = 'OPEN'").run(input.stan, id);
+    db.prepare("UPDATE deposits SET status = 'POSTED', stan = ? WHERE id = ? AND status = 'COUNTED'").run(input.stan, id);
     return get(id);
   }
 
