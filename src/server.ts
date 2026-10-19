@@ -28,6 +28,9 @@ export function createApp(db: Db) {
         if (req.method === "GET" && parts.length === 2) return send(res, 200, svc.get(parts[1]));
         if (req.method === "POST" && parts[2] === "count") return send(res, 200, svc.recordCount(parts[1], await readJson(req)));
         if (req.method === "POST" && parts[2] === "confirm") return send(res, 200, svc.confirm(parts[1], await readJson(req)));
+        if (req.method === "POST" && parts[2] === "pending") return send(res, 200, svc.markPending(parts[1], await readJson(req)));
+        if (req.method === "POST" && parts[2] === "resolve") return send(res, 200, svc.resolve(parts[1], await readJson(req)));
+        if (req.method === "POST" && parts[2] === "reverse") return send(res, 200, svc.reverse(parts[1], await readJson(req)));
         if (req.method === "POST" && parts[2] === "cancel") return send(res, 200, svc.cancel(parts[1]));
       }
       if (req.method === "GET" && parts[0] === "accounts" && parts[2] === "balance") {

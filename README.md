@@ -21,7 +21,10 @@ Butuh Node 22.5 atau lebih baru (memakai `node:sqlite`).
 1. `POST /deposits` `{ terminalId, accountNo }` membuat sesi setoran (status OPEN).
 2. `POST /deposits/:id/count` `{ notes: [{ denom, qty }], rejected }` menyimpan hasil hitung mesin (status COUNTED).
 3. `POST /deposits/:id/confirm` `{ requestId, stan }` memposting ke ledger setelah host approve (status POSTED).
-4. `GET /accounts/:accountNo/balance` menampilkan saldo dari ledger.
+4. `POST /deposits/:id/pending` `{ actor, reason }` menandai setoran COUNTED yang respons host-nya belum jelas (status PENDING).
+5. `POST /deposits/:id/resolve` `{ actor, reason, stan }` memposting setoran PENDING setelah host terbukti approve (status POSTED).
+6. `POST /deposits/:id/reverse` `{ actor, reason }` membalik setoran PENDING lewat entri pembalik jika sudah ada entri ledger (status REVERSED).
+7. `GET /accounts/:accountNo/balance` menampilkan saldo dari ledger.
 
 ## Mulai dari branch mana?
 
