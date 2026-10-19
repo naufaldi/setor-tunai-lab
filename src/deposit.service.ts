@@ -12,7 +12,7 @@ import {
   type Deposit,
   type NoteCount,
 } from "./domain/deposit.js";
-import { postDepositEntries } from "./ledger.js";
+import { hasEntries, postDepositEntries } from "./ledger.js";
 
 type Clock = () => string;
 const systemClock: Clock = () => new Date().toISOString();
@@ -138,6 +138,47 @@ export function createDepositService(db: Db, now: Clock = systemClock) {
     });
   }
 
+  // Semua STAN yang pernah tercatat untuk setoran ini: dari host_requests dan deposits.stan, tanpa duplikat.
+  function knownStans(depositId: string): string[] {
+    const rows = db
+      .prepare(
+        "SELECT stan FROM host_requests WHERE deposit_id = ? UNION SELECT stan FROM deposits WHERE id = ? AND stan IS NOT NULL",
+      )
+      .all(depositId, depositId) as { stan: string }[];
+    return rows.map((r) => r.stan);
+  }
+
+  // Hasil akhir di host sudah jelas berhasil: PENDING menjadi POSTED, ledger tidak diposting dua kali.
+  function resolve(id: string, input: { actor: string; reason: string; stan: string }): Deposit {
+    validateActor(input.actor);
+    validateReason(input.reason);
+    if (typeof input.stan !== "string") throw new DepositError("INVALID_STAN", "STAN harus string 6 digit");
+    validateStan(input.stan);
+    return inTransaction(() => {
+      const dep = get(id);
+      if (dep.status === "POSTED" && dep.stan === input.stan) return dep;
+      if (dep.status !== "PENDING") throw new DepositError("INVALID_STATE", `status ${dep.status} tidak bisa di-resolve`);
+      const known = knownStans(id);
+      if (known.length > 0 && !known.includes(input.stan)) {
+        throw new DepositError("INVALID_STATE", "STAN tidak sesuai dengan STAN yang sudah tercatat untuk setoran ini");
+      }
+      const at = now();
+      const alreadyPosted = known.some((s) => hasEntries(db, `${dep.terminalId}/${s}`));
+      if (!alreadyPosted) {
+        postDepositEntries(db, {
+          terminalId: dep.terminalId,
+          accountNo: dep.accountNo,
+          amount: dep.amount,
+          ref: `${dep.terminalId}/${input.stan}`,
+          at,
+        });
+      }
+      db.prepare("UPDATE deposits SET status = 'POSTED', stan = ? WHERE id = ? AND status = 'PENDING'").run(input.stan, id);
+      recordEvent(id, "RESOLVED", input, at);
+      return get(id);
+    });
+  }
+
   function cancel(id: string): Deposit {
     const dep = get(id);
     if (dep.status === "POSTED") throw new DepositError("INVALID_STATE", "setoran yang sudah diposting tidak bisa dibatalkan");
@@ -148,7 +189,7 @@ export function createDepositService(db: Db, now: Clock = systemClock) {
     return get(id);
   }
 
-  return { get, start, recordCount, confirm, cancel, markPending };
+  return { get, start, recordCount, confirm, cancel, markPending, resolve };
 }
 
 export type DepositService = ReturnType<typeof createDepositService>;
