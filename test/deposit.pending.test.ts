@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { balance, CASH_IN_MACHINE, postDepositEntries } from "../src/ledger.js";
+import { balance, CASH_IN_MACHINE, postDepositEntries, postReversalEntries } from "../src/ledger.js";
 import { ACC_A, countedDeposit, setup } from "./helpers.js";
 
 const input = { actor: "spv.rina", reason: "host timeout, menunggu rekonsiliasi" };
@@ -206,5 +206,162 @@ describe("resolve", () => {
     const row = db.prepare("SELECT status, stan FROM deposits WHERE id = ?").get(dep.id);
     expect(row).toEqual({ status: "PENDING", stan: null });
     expect((db.prepare("SELECT COUNT(*) AS n FROM ledger_entries").get() as { n: number }).n).toBe(0);
+  });
+});
+
+describe("reverse", () => {
+  type Ctx = ReturnType<typeof setup>;
+  const KAS = CASH_IN_MACHINE("ATM-0412");
+
+  function snapshot(db: Ctx["db"], id: string) {
+    const status = (db.prepare("SELECT status FROM deposits WHERE id = ?").get(id) as { status: string }).status;
+    const ledger = (db.prepare("SELECT COUNT(*) AS n FROM ledger_entries").get() as { n: number }).n;
+    const ev = (db.prepare("SELECT COUNT(*) AS n FROM deposit_events").get() as { n: number }).n;
+    return { status, ledger, ev, bal: balance(db, ACC_A), kas: balance(db, KAS) };
+  }
+  function credited(db: Ctx["db"], id: string, amount: number, stan: string, requestId = "rq-" + stan) {
+    db.prepare(
+      "INSERT INTO host_requests (request_id, deposit_id, terminal_id, stan, created_at) VALUES (?, ?, ?, ?, ?)",
+    ).run(requestId, id, "ATM-0412", stan, "2026-10-14T02:00:00.000Z");
+    postDepositEntries(db, {
+      terminalId: "ATM-0412",
+      accountNo: ACC_A,
+      amount,
+      ref: `ATM-0412/${stan}`,
+      at: "2026-10-14T02:00:00.000Z",
+    });
+  }
+  function pending(svc: Ctx["svc"]) {
+    const dep = countedDeposit(svc);
+    return dep;
+  }
+  const count = (db: Ctx["db"], ref: string) =>
+    (db.prepare("SELECT COUNT(*) AS n FROM ledger_entries WHERE ref = ?").get(ref) as { n: number }).n;
+
+  it("PENDING tanpa ledger menjadi REVERSED dengan satu event", () => {
+    const { db, svc } = setup();
+    const dep = pending(svc);
+    svc.markPending(dep.id, input);
+    const res = svc.reverse(dep.id, input);
+    expect(res.status).toBe("REVERSED");
+    expect((db.prepare("SELECT COUNT(*) AS n FROM ledger_entries").get() as { n: number }).n).toBe(0);
+    const rev = events(db, dep.id).filter((e) => e.action === "REVERSED");
+    expect(rev).toHaveLength(1);
+    expect(rev[0]).toMatchObject(input);
+  });
+
+  it("ledger terkredit dibalik dengan entri baru", () => {
+    const { db, svc } = setup();
+    const dep = pending(svc);
+    credited(db, dep.id, dep.amount, "004417");
+    svc.markPending(dep.id, input);
+    const res = svc.reverse(dep.id, input);
+    expect(res.status).toBe("REVERSED");
+    expect(balance(db, ACC_A)).toBe(0);
+    expect(balance(db, KAS)).toBe(0);
+    const rev = db
+      .prepare("SELECT account_no, direction, amount FROM ledger_entries WHERE ref = ? ORDER BY id")
+      .all("ATM-0412/004417/REV");
+    expect(rev).toEqual(
+      expect.arrayContaining([
+        { account_no: ACC_A, direction: "DR", amount: dep.amount },
+        { account_no: KAS, direction: "CR", amount: dep.amount },
+      ]),
+    );
+    expect(rev).toHaveLength(2);
+    expect(count(db, "ATM-0412/004417")).toBe(2);
+    expect((db.prepare("SELECT COUNT(*) AS n FROM ledger_entries").get() as { n: number }).n).toBe(4);
+  });
+
+  it("dua STAN dikenal dan keduanya terkredit: keduanya dibalik", () => {
+    const { db, svc } = setup();
+    const dep = pending(svc);
+    credited(db, dep.id, dep.amount, "004417");
+    credited(db, dep.id, dep.amount, "004418");
+    svc.markPending(dep.id, input);
+    svc.reverse(dep.id, input);
+    expect(balance(db, ACC_A)).toBe(0);
+    expect(balance(db, KAS)).toBe(0);
+    expect(count(db, "ATM-0412/004417/REV")).toBe(2);
+    expect(count(db, "ATM-0412/004418/REV")).toBe(2);
+  });
+
+  it("reversal parsial sebelumnya diselesaikan tanpa membalik dua kali", () => {
+    const { db, svc } = setup();
+    const dep = pending(svc);
+    credited(db, dep.id, dep.amount, "004417");
+    credited(db, dep.id, dep.amount, "004418");
+    svc.markPending(dep.id, input);
+    expect(postReversalEntries(db, "ATM-0412/004417", "2026-10-14T02:05:00.000Z")).toBe(true);
+    expect(snapshot(db, dep.id).status).toBe("PENDING");
+    svc.reverse(dep.id, input);
+    expect(balance(db, ACC_A)).toBe(0);
+    expect(balance(db, KAS)).toBe(0);
+    expect(count(db, "ATM-0412/004417/REV")).toBe(2);
+    expect(count(db, "ATM-0412/004418/REV")).toBe(2);
+  });
+
+  it("reverse kedua pada REVERSED tanpa efek", () => {
+    const { db, svc } = setup();
+    const dep = pending(svc);
+    credited(db, dep.id, dep.amount, "004417");
+    svc.markPending(dep.id, input);
+    svc.reverse(dep.id, input);
+    const before = snapshot(db, dep.id);
+    expect(svc.reverse(dep.id, input).status).toBe("REVERSED");
+    expect(snapshot(db, dep.id)).toEqual(before);
+  });
+
+  it("COUNTED, OPEN, POSTED melempar INVALID_STATE tanpa efek", () => {
+    const { db, svc } = setup();
+    const open = svc.start({ terminalId: "ATM-0412", accountNo: ACC_A });
+    const counted = countedDeposit(svc);
+    const posted = countedDeposit(svc);
+    svc.confirm(posted.id, { requestId: "r1", stan: "004417" });
+    for (const d of [open, counted, posted]) {
+      const before = snapshot(db, d.id);
+      expect(code(() => svc.reverse(d.id, input))).toBe("INVALID_STATE");
+      expect(snapshot(db, d.id)).toEqual(before);
+    }
+  });
+
+  it("markPending dan resolve pada REVERSED melempar INVALID_STATE tanpa efek", () => {
+    const { db, svc } = setup();
+    const dep = pending(svc);
+    svc.markPending(dep.id, input);
+    svc.reverse(dep.id, input);
+    const before = snapshot(db, dep.id);
+    expect(code(() => svc.markPending(dep.id, input))).toBe("INVALID_STATE");
+    expect(code(() => svc.resolve(dep.id, { ...input, stan: "004417" }))).toBe("INVALID_STATE");
+    expect(snapshot(db, dep.id)).toEqual(before);
+  });
+
+  it("validasi actor dan reason lebih dulu dari state, tanpa efek", () => {
+    const { db, svc } = setup();
+    const open = svc.start({ terminalId: "ATM-0412", accountNo: ACC_A });
+    const before = snapshot(db, open.id);
+    expect(code(() => svc.reverse(open.id, { actor: "", reason: "x" }))).toBe("INVALID_ACTOR");
+    expect(code(() => svc.reverse(open.id, { actor: "a", reason: "" }))).toBe("INVALID_REASON");
+    expect(snapshot(db, open.id)).toEqual(before);
+  });
+
+  it("id tidak ada melempar NOT_FOUND", () => {
+    const { svc } = setup();
+    expect(code(() => svc.reverse("S-nope", input))).toBe("NOT_FOUND");
+  });
+
+  it("rollback jika insert event REVERSED gagal", () => {
+    const { db, svc } = setup();
+    const dep = pending(svc);
+    credited(db, dep.id, dep.amount, "004417");
+    svc.markPending(dep.id, input);
+    db.exec(
+      "CREATE TRIGGER boom BEFORE INSERT ON deposit_events WHEN NEW.action = 'REVERSED' BEGIN SELECT RAISE(ABORT, 'boom'); END",
+    );
+    const before = snapshot(db, dep.id);
+    expect(() => svc.reverse(dep.id, input)).toThrow();
+    expect(snapshot(db, dep.id)).toEqual(before);
+    expect(before.status).toBe("PENDING");
+    expect((db.prepare("SELECT COUNT(*) AS n FROM ledger_entries WHERE ref LIKE '%/REV'").get() as { n: number }).n).toBe(0);
   });
 });

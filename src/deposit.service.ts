@@ -12,7 +12,7 @@ import {
   type Deposit,
   type NoteCount,
 } from "./domain/deposit.js";
-import { hasEntries, postDepositEntries } from "./ledger.js";
+import { hasEntries, postDepositEntries, postReversalEntries } from "./ledger.js";
 
 type Clock = () => string;
 const systemClock: Clock = () => new Date().toISOString();
@@ -179,6 +179,24 @@ export function createDepositService(db: Db, now: Clock = systemClock) {
     });
   }
 
+  // Hasil akhir di host gagal: PENDING menjadi REVERSED. Entri ledger asli dibalik lewat entri baru (insert-only).
+  function reverse(id: string, input: { actor: string; reason: string }): Deposit {
+    validateActor(input.actor);
+    validateReason(input.reason);
+    return inTransaction(() => {
+      const dep = get(id);
+      if (dep.status === "REVERSED") return dep;
+      if (dep.status !== "PENDING") throw new DepositError("INVALID_STATE", `status ${dep.status} tidak bisa dibalik`);
+      const at = now();
+      for (const stan of knownStans(id)) {
+        postReversalEntries(db, `${dep.terminalId}/${stan}`, at);
+      }
+      db.prepare("UPDATE deposits SET status = 'REVERSED' WHERE id = ? AND status = 'PENDING'").run(id);
+      recordEvent(id, "REVERSED", input, at);
+      return get(id);
+    });
+  }
+
   function cancel(id: string): Deposit {
     const dep = get(id);
     if (dep.status === "POSTED") throw new DepositError("INVALID_STATE", "setoran yang sudah diposting tidak bisa dibatalkan");
@@ -189,7 +207,7 @@ export function createDepositService(db: Db, now: Clock = systemClock) {
     return get(id);
   }
 
-  return { get, start, recordCount, confirm, cancel, markPending, resolve };
+  return { get, start, recordCount, confirm, cancel, markPending, resolve, reverse };
 }
 
 export type DepositService = ReturnType<typeof createDepositService>;
