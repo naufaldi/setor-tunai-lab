@@ -1,0 +1,34 @@
+# Checklist review PR (hanya saat review)
+
+- [ ] Nama variabel jelas
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
+- [ ] Tidak ada magic number
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
+- [ ] Satu fungsi satu tugas
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
+- [ ] Test mencakup kasus gagal
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
+- [ ] Tidak ada nomor rekening lengkap di log
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
+- [ ] Nominal integer
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
+- [ ] Ledger append-only
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
+- [ ] Error code konsisten
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
+- [ ] Response HTTP sesuai (400, 404, 409)
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
+- [ ] Tidak ada dependency baru tanpa alasan
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
+- [ ] Komentar menjelaskan alasan, bukan apa
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
+- [ ] Tidak ada code mati
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
+- [ ] Tidak ada console.log tertinggal
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
+- [ ] CHANGELOG diperbarui jika perlu
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
+- [ ] Deskripsi PR menjelaskan risiko
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
+- [ ] Screenshot atau output test dilampirkan
+  - Jika tidak terpenuhi, tulis komentar dengan label `perlu-diperbaiki` dan alasan singkat.
