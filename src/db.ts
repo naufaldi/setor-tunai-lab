@@ -35,6 +35,14 @@ export function openDb(path = ":memory:"): Db {
       ref TEXT NOT NULL,
       created_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS deposit_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      deposit_id TEXT NOT NULL REFERENCES deposits(id),
+      action TEXT NOT NULL,
+      actor TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
   `);
   return db;
 }

@@ -1,6 +1,6 @@
 import { isDenomination, MAX_NOTES_PER_DEPOSIT, type Denomination } from "./money.js";
 
-export type DepositStatus = "OPEN" | "COUNTED" | "POSTED" | "CANCELLED";
+export type DepositStatus = "OPEN" | "COUNTED" | "PENDING" | "POSTED" | "REVERSED" | "CANCELLED";
 
 export interface NoteCount {
   denom: Denomination;
@@ -40,6 +40,23 @@ export function validateAccountNo(accountNo: string): void {
 export function validateStan(stan: string): void {
   if (!/^\d{6}$/.test(stan)) {
     throw new DepositError("INVALID_STAN", "STAN harus 6 digit");
+  }
+}
+
+export const REASON_MAX_LENGTH = 200;
+
+export function validateActor(actor: unknown): asserts actor is string {
+  if (typeof actor !== "string" || actor.trim() === "") {
+    throw new DepositError("INVALID_ACTOR", "actor wajib diisi");
+  }
+}
+
+export function validateReason(reason: unknown): asserts reason is string {
+  if (typeof reason !== "string" || reason.trim() === "") {
+    throw new DepositError("INVALID_REASON", "reason wajib diisi");
+  }
+  if (reason.length > REASON_MAX_LENGTH) {
+    throw new DepositError("INVALID_REASON", `reason maksimal ${REASON_MAX_LENGTH} karakter`);
   }
 }
 
