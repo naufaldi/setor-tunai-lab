@@ -29,4 +29,9 @@ Butuh Node 22.5 atau lebih baru (memakai `node:sqlite`).
 |---|---|---|
 | Sesi 4 Part 1, awal | `main` | Kondisi awal: insiden INC-2026-1014-01 belum diperbaiki, CLAUDE.md panjang |
 | Sesi 4 Part 1, Lab 1-3 selesai | tag `lab3-selesai` | Perbaikan idempotency + test, CLAUDE.md ramping, subagent log-analyst |
-| Sesi 4 Part 1, solusi | `sesi4-part1-solution` | Sama dengan `lab3-selesai` |
+| Sesi 4 Part 1, solusi Lab 1-3 | `sesi4-part1-solution` | Sama dengan `lab3-selesai` |
+| Sesi 4 Part 1, awal Lab 4 (Superpowers) | `sesi4-superpowers-start` (= tag `lab4-selesai`) | `lab3-selesai` + workflow CI |
+| Lab 5 selesai | tag `lab5-selesai` | Design doc `docs/superpowers/specs/` (brainstorming) |
+| Lab 6 selesai | tag `lab6-selesai` | Plan `docs/superpowers/plans/` (writing-plans) |
+| Lab 7 selesai | tag `lab7-selesai` | 6 task dikerjakan subagent, test hijau |
+| Lab 8 selesai | `feature/pending-reversal` (= tag `lab8-selesai`) | Perbaikan dari code review, PR ke `sesi4-superpowers-start` |
