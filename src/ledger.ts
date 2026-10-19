@@ -28,3 +28,30 @@ export function entriesFor(db: Db, accountNo: string) {
     .prepare("SELECT direction, amount, ref, created_at FROM ledger_entries WHERE account_no = ? ORDER BY id")
     .all(accountNo) as { direction: string; amount: number; ref: string; created_at: string }[];
 }
+
+export function hasEntries(db: Db, ref: string): boolean {
+  return db.prepare("SELECT 1 AS x FROM ledger_entries WHERE ref = ? LIMIT 1").get(ref) !== undefined;
+}
+
+// Baca saja, tanpa insert: semua entri dengan ref ini, urut id.
+export function entriesByRef(db: Db, ref: string) {
+  return db
+    .prepare("SELECT account_no, direction, amount FROM ledger_entries WHERE ref = ? ORDER BY id")
+    .all(ref) as { account_no: string; direction: string; amount: number }[];
+}
+
+// Koreksi lewat entri baru: kebalikan entri asli dengan ref `${ref}/REV`.
+// Tidak membuka transaksi; pemanggil yang membungkusnya. Hanya INSERT.
+export function postReversalEntries(db: Db, ref: string, at: string): boolean {
+  const revRef = `${ref}/REV`;
+  if (hasEntries(db, revRef)) return false;
+  const originals = entriesByRef(db, ref);
+  if (originals.length === 0) return false;
+  const insert = db.prepare(
+    "INSERT INTO ledger_entries (account_no, direction, amount, ref, created_at) VALUES (?, ?, ?, ?, ?)",
+  );
+  for (const o of originals) {
+    insert.run(o.account_no, o.direction === "DR" ? "CR" : "DR", o.amount, revRef, at);
+  }
+  return true;
+}

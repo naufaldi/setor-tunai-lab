@@ -10,7 +10,7 @@ API setoran tunai lewat mesin CRM (cash recycling ATM). Repo latihan untuk train
 git clone https://github.com/naufaldi/setor-tunai-lab.git
 cd setor-tunai-lab
 npm install
-npm test          # 111 test hijau di branch main
+npm test          # 167 test hijau di branch main
 npm run seed && npm start   # API di http://localhost:8787
 ```
 
@@ -21,7 +21,10 @@ Butuh Node 22.5 atau lebih baru (memakai `node:sqlite`).
 1. `POST /deposits` `{ terminalId, accountNo }` membuat sesi setoran (status OPEN).
 2. `POST /deposits/:id/count` `{ notes: [{ denom, qty }], rejected }` menyimpan hasil hitung mesin (status COUNTED).
 3. `POST /deposits/:id/confirm` `{ requestId, stan }` memposting ke ledger setelah host approve (status POSTED).
-4. `GET /accounts/:accountNo/balance` menampilkan saldo dari ledger.
+4. `POST /deposits/:id/pending` `{ actor, reason }` menandai setoran COUNTED yang respons host-nya belum jelas (status PENDING).
+5. `POST /deposits/:id/resolve` `{ actor, reason, stan }` memposting setoran PENDING setelah host terbukti approve (status POSTED).
+6. `POST /deposits/:id/reverse` `{ actor, reason }` membalik setoran PENDING lewat entri pembalik jika sudah ada entri ledger (status REVERSED).
+7. `GET /accounts/:accountNo/balance` menampilkan saldo dari ledger.
 
 ## Mulai dari branch mana?
 
