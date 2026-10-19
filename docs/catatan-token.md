@@ -5,6 +5,6 @@ Tugas yang sama di setiap lab: insiden `docs/insiden/INC-2026-1014-01.md`.
 
 | Lab | Yang diubah | Context awal | Context akhir | Memory files (/context) | rtk gain | Catatan |
 |---|---|---|---|---|---|---|
-| 1 | Baseline: prompt umum, CLAUDE.md panjang, tanpa RTK | | | | - | |
+| 1 | Baseline: prompt umum, CLAUDE.md panjang, tanpa RTK | 47,3k | 64,2k | 4,9k | - | 9 request, total input 505k token. Claude memakai grep dan tail sendiri. |
 | 2 | + RTK (hook PreToolUse) | | | | | |
 | 3 | + prompt spesifik, CLAUDE.md ramping, subagent log-analyst | | | | | |
