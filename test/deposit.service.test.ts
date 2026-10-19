@@ -54,6 +54,21 @@ describe("confirm", () => {
     svc.confirm(dep.id, { requestId: "R-9f3a", stan: "004417" });
     expect(balance(db, ACC_A)).toBe(2_500_000);
   });
+  // INC-2026-1014-01: timeout 30 detik, CRM retry dengan requestId baru (R-a7b2),
+  // STAN sama (004417). Konfirmasi kedua tidak boleh memposting lagi.
+  it("retry dengan requestId baru dan STAN sama tidak memposting dua kali", () => {
+    const { db, svc } = setup();
+    const dep = countedDeposit(svc, 25);
+    svc.confirm(dep.id, { requestId: "R-a8f7", stan: "004417" });
+    const again = svc.confirm(dep.id, { requestId: "R-a7b2", stan: "004417" });
+    expect(again.status).toBe("POSTED");
+    expect(balance(db, ACC_A)).toBe(2_500_000);
+  });
+  it("setoran yang sudah POSTED berstatus POSTED setelah konfirmasi", () => {
+    const { svc } = setup();
+    const dep = countedDeposit(svc, 25);
+    expect(svc.confirm(dep.id, { requestId: "R-a8f7", stan: "004417" }).status).toBe("POSTED");
+  });
   it("menolak konfirmasi setoran yang belum dihitung", () => {
     const { svc } = setup();
     const dep = svc.start({ terminalId: "ATM-0412", accountNo: ACC_A });
