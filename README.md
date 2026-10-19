@@ -10,7 +10,7 @@ API setoran tunai lewat mesin CRM (cash recycling ATM). Repo latihan untuk train
 git clone https://github.com/naufaldi/setor-tunai-lab.git
 cd setor-tunai-lab
 npm install
-npm test          # 111 test hijau di branch main
+npm test          # 167 test hijau di branch main
 npm run seed && npm start   # API di http://localhost:8787
 ```
 

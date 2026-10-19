@@ -12,7 +12,7 @@ import {
   type Deposit,
   type NoteCount,
 } from "./domain/deposit.js";
-import { hasEntries, postDepositEntries, postReversalEntries } from "./ledger.js";
+import { CASH_IN_MACHINE, entriesByRef, hasEntries, postDepositEntries, postReversalEntries } from "./ledger.js";
 
 type Clock = () => string;
 const systemClock: Clock = () => new Date().toISOString();
@@ -108,7 +108,11 @@ export function createDepositService(db: Db, now: Clock = systemClock) {
       db.exec("COMMIT");
       return result;
     } catch (err) {
-      db.exec("ROLLBACK");
+      try {
+        db.exec("ROLLBACK");
+      } catch {
+        // jangan menutupi error asli
+      }
       throw err;
     }
   }
@@ -188,7 +192,26 @@ export function createDepositService(db: Db, now: Clock = systemClock) {
       if (dep.status === "REVERSED") return dep;
       if (dep.status !== "PENDING") throw new DepositError("INVALID_STATE", `status ${dep.status} tidak bisa dibalik`);
       const at = now();
-      for (const stan of knownStans(id)) {
+      const stans = knownStans(id);
+      // Jaring pengaman: ref tidak dijamin unik per setoran. Tolak jika entri asli bukan tepat satu pasang
+      // DR kas mesin / CR rekening nasabah dengan nominal setoran ini.
+      for (const stan of stans) {
+        const ref = `${dep.terminalId}/${stan}`;
+        const originals = entriesByRef(db, ref);
+        if (originals.length === 0 || hasEntries(db, `${ref}/REV`)) continue;
+        const dr = originals.filter((e) => e.direction === "DR");
+        const cr = originals.filter((e) => e.direction === "CR");
+        const ok =
+          originals.length === 2 &&
+          dr.length === 1 &&
+          cr.length === 1 &&
+          cr[0].account_no === dep.accountNo &&
+          dr[0].account_no === CASH_IN_MACHINE(dep.terminalId) &&
+          Number(cr[0].amount) === dep.amount &&
+          Number(dr[0].amount) === dep.amount;
+        if (!ok) throw new DepositError("INVALID_STATE", "ref ambigu, perlu penanganan manual");
+      }
+      for (const stan of stans) {
         postReversalEntries(db, `${dep.terminalId}/${stan}`, at);
       }
       db.prepare("UPDATE deposits SET status = 'REVERSED' WHERE id = ? AND status = 'PENDING'").run(id);

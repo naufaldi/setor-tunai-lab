@@ -87,6 +87,7 @@ Transisi tidak valid mengembalikan 409 dengan `{ error: "INVALID_STATE", message
 
 - Setoran yang sudah POSTED tetapi ternyata tidak di-approve host tidak bisa dibalik lewat fitur ini. Penanganannya perlu keputusan terpisah.
 - `actor` hanya klaim dari pemanggil, bukan identitas yang terverifikasi.
+- Ref `${terminalId}/${stan}` tidak dijamin unik karena ledger tidak punya kolom deposit_id. `reverse` menolak dengan 409 jika entri asli suatu ref bukan tepat satu pasang DR/CR dengan rekening nasabah, kas mesin, dan nominal setoran ini. Ini hanya jaring pengaman: STAN yang dipakai ulang pada rekening, terminal, dan nominal yang sama tetap tidak bisa dibedakan, dan `resolve` tidak mencegah ref bentrok. Perbaikan penuh butuh menautkan entri ledger ke setoran (perubahan skema ledger), di luar scope.
 - Tidak ada endpoint untuk mendaftar setoran PENDING atau membaca `deposit_events`. Job rekonsiliasi harus sudah tahu id setoran.
 
 ## Diserahkan ke builder
