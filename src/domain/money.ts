@@ -3,6 +3,7 @@ export const DENOMINATIONS = [100_000, 50_000] as const;
 export type Denomination = (typeof DENOMINATIONS)[number];
 
 export const MAX_NOTES_PER_DEPOSIT = 200;
+export const MAX_REJECTED_PER_DEPOSIT = 20;
 
 export function isDenomination(value: number): value is Denomination {
   return (DENOMINATIONS as readonly number[]).includes(value);

@@ -1,4 +1,4 @@
-import { isDenomination, MAX_NOTES_PER_DEPOSIT, type Denomination } from "./money.js";
+import { isDenomination, MAX_NOTES_PER_DEPOSIT, MAX_REJECTED_PER_DEPOSIT, type Denomination } from "./money.js";
 
 export type DepositStatus = "OPEN" | "COUNTED" | "PENDING" | "POSTED" | "REVERSED" | "CANCELLED";
 
@@ -80,6 +80,12 @@ export function countAmount(notes: { denom: number; qty: number }[]): number {
     throw new DepositError("TOO_MANY_NOTES", `maksimal ${MAX_NOTES_PER_DEPOSIT} lembar per setoran`);
   }
   return total;
+}
+
+export function validateRejected(rejected: number): void {
+  if (rejected > MAX_REJECTED_PER_DEPOSIT) {
+    throw new DepositError("TOO_MANY_REJECTS", `maksimal ${MAX_REJECTED_PER_DEPOSIT} lembar reject per setoran`);
+  }
 }
 
 export function canConfirm(deposit: Deposit): boolean {

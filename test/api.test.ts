@@ -38,6 +38,17 @@ describe("API setoran", () => {
     const res = await post(`/deposits/${dep.id}/count`, { notes: [{ denom: 20000, qty: 1 }] });
     expect(res.status).toBe(400);
   });
+  it("200 untuk reject tepat 20 lembar", async () => {
+    const dep = await (await post("/deposits", { terminalId: "ATM-0412", accountNo: ACC_A })).json();
+    const res = await post(`/deposits/${dep.id}/count`, { notes: [{ denom: 100000, qty: 5 }], rejected: 20 });
+    expect(res.status).toBe(200);
+  });
+  it("400 TOO_MANY_REJECTS untuk reject lebih dari 20 lembar", async () => {
+    const dep = await (await post("/deposits", { terminalId: "ATM-0412", accountNo: ACC_A })).json();
+    const res = await post(`/deposits/${dep.id}/count`, { notes: [{ denom: 100000, qty: 5 }], rejected: 21 });
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("TOO_MANY_REJECTS");
+  });
   it("404 untuk rekening tidak terdaftar", async () => {
     const res = await post("/deposits", { terminalId: "ATM-0412", accountNo: "0000000000" });
     expect(res.status).toBe(404);
