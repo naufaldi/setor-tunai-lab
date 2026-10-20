@@ -1,0 +1,16 @@
+{
+  "name": "hitachi-deposit",
+  "owner": {
+    "name": "Tim Software Application"
+  },
+  "plugins": [
+    {
+      "name": "deposit-team",
+      "source": "./plugins/deposit-team",
+      "description": "Skill tim untuk API setoran tunai CRM: siapkan release dan tambah aturan setoran."
+    }
+  ],
+  "metadata": {
+    "description": "Marketplace plugin tim untuk proyek setor-tunai (CRM)."
+  }
+}
