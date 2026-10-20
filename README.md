@@ -1,6 +1,6 @@
 # setor-tunai-lab
 
-API setoran tunai lewat mesin CRM (cash recycling ATM). Repo latihan untuk training Hacktiv8 × Hitachi, "Advanced Claude Code for Agentic Software Engineering", Sesi 4.
+API setoran tunai melalui mesin CRM (cash recycling ATM). Repo latihan untuk training Hacktiv8 × Hitachi, "Advanced Claude Code for Agentic Software Engineering", Sesi 4.
 
 > Ilustrasi. Semua data, rekening, dan journal adalah data dummy.
 
@@ -35,3 +35,11 @@ Butuh Node 22.5 atau lebih baru (memakai `node:sqlite`).
 | Lab 6 selesai | tag `lab6-selesai` | Plan `docs/superpowers/plans/` (writing-plans) |
 | Lab 7 selesai | tag `lab7-selesai` | 6 task dikerjakan subagent, test hijau |
 | Lab 8 selesai | `feature/pending-reversal` (= tag `lab8-selesai`) | Perbaikan dari code review, PR ke `sesi4-superpowers-start` |
+| Sesi 4 Part 2, Lab 9 selesai | tag `lab9-selesai` | Skill `/prepare-release` + draft release v0.2.0 |
+| Sesi 4 Part 2, Lab 10 selesai | tag `lab10-selesai` | Catatan baseline di `docs/skills/` |
+| Sesi 4 Part 2, Lab 11 selesai | tag `lab11-selesai` | Skill `add-deposit-rule` |
+| Sesi 4 Part 2, Lab 12 selesai | tag `lab12-selesai` | Team plugin `deposit-team` + marketplace `hitachi-deposit` |
+| Sesi 4 Part 2, awal Lab 13 | `sesi4-part2` (tag `lab13-mulai`) | Plugin v0.2.0 + skill `review-checklist` (context: fork) |
+| Sesi 4 Part 2, Lab 13 selesai | `feature/reject-limit` (tag `lab13-selesai`), PR #3 | Aturan maksimal 20 lembar reject, review, PR, draft release v0.3.0 |
+
+Panduan langkah Lab 9-13 dan cara memasang plugin `deposit-team` ada di README branch [`sesi4-part2`](https://github.com/naufaldi/setor-tunai-lab/tree/sesi4-part2#panduan-sesi-4-part-2-reusable-claude-code-skills).
