@@ -36,21 +36,21 @@ Butuh Node 22.5 atau lebih baru (memakai `node:sqlite`).
 | Sesi 4 Part 1, Lab 4 selesai | `sesi4-superpowers-start` (tag `lab4-selesai`) | `lab3-selesai` + workflow CI test |
 | Sesi 4 Part 1, Lab 5-8 selesai | `feature/pending-reversal` (tag `lab8-selesai`) | Fitur pending dan reversal, 167 test. Awal Sesi 4 Part 2 |
 | Sesi 4 Part 2, Lab 9 selesai | tag `lab9-selesai` | Skill `/prepare-release` + draft release v0.2.0 |
-| Sesi 4 Part 2, Lab 10 selesai | tag `lab10-selesai` | Catatan baseline di `docs/skills/` |
-| Sesi 4 Part 2, Lab 11 selesai | tag `lab11-selesai` | Skill `add-deposit-rule` |
-| Sesi 4 Part 2, Lab 12 selesai | tag `lab12-selesai` | Team plugin `deposit-team` + marketplace `hitachi-deposit` |
-| Sesi 4 Part 2, awal Lab 13 | `sesi4-part2` (tag `lab13-mulai`) | Plugin v0.2.0 + skill `review-checklist` (context: fork) |
-| Sesi 4 Part 2, Lab 13 selesai | `feature/reject-limit` (tag `lab13-selesai`), PR #3 | Aturan maksimal 20 lembar reject, review, PR, draft release v0.3.0 |
+| Sesi 4 Part 2, Lab 10 tahap baseline | tag `lab10-baseline` | Catatan baseline di `docs/skills/` |
+| Sesi 4 Part 2, Lab 10 selesai | tag `lab10-selesai` | Skill `add-deposit-rule` |
+| Sesi 4 Part 2, Lab 11 selesai | tag `lab11-selesai` | Team plugin `deposit-team` + marketplace `hitachi-deposit` |
+| Sesi 4 Part 2, awal Lab 12 | `sesi4-part2` (tag `lab12-mulai`) | Plugin v0.2.0 + skill `review-checklist` (context: fork) |
+| Sesi 4 Part 2, Lab 12 selesai | `feature/reject-limit` (tag `lab12-selesai`), PR #3 | Aturan maksimal 20 lembar reject, review, PR, draft release v0.3.0 |
 
 ## Panduan Sesi 4 Part 2: Reusable Claude Code Skills
 
-Part 2 membuat team skill dari prosedur yang sudah ada di repo, menguji apakah skill dimuat dan diikuti, membagikannya sebagai plugin, lalu memakainya dalam alur end-to-end (testing, review, approval).
+Part 2 terdiri dari empat lab (Lab 9-12). Part 2 membuat team skill dari prosedur yang sudah ada di repo, menguji apakah skill dimuat dan diikuti, membagikannya sebagai plugin, lalu memakainya dalam alur end-to-end (testing, review, approval).
 
 ### Persiapan
 
 - Claude desktop, tab **Code**, **local session** yang membuka folder clone repo ini. Menu `/` dan **Add plugins** hanya tersedia di local session.
-- Claude Code CLI untuk command `claude plugin ...` (Lab 12).
-- Plugin Superpowers sudah terpasang dari Part 1 (Lab 11 memakai skill `superpowers:writing-skills`).
+- Claude Code CLI untuk command `claude plugin ...` (Lab 11).
+- Plugin Superpowers sudah terpasang dari Part 1 (Lab 10 memakai skill `superpowers:writing-skills`).
 - Node 22.5 atau lebih baru, lalu `npm install`.
 
 ```bash
@@ -74,54 +74,54 @@ Mulai dari `lab8-selesai`. Buat project skill dari `docs/prosedur-release.md`.
 
 Selesai jika validasi lolos, `CHANGELOG.md` dan `docs/release/v0.2.0.md` tersedia, dan tidak ada tag atau push. Jika skill batal dengan error dari `` !`command` ``, pindahkan logika shell ke script di folder skill (lihat `scripts/commit-sejak-tag.sh` di tag `lab9-selesai`). Hasil acuan: tag `lab9-selesai`.
 
-### Lab 10: Baseline tanpa skill
+### Lab 10: Baseline dan skill `add-deposit-rule`
 
-Mulai dari `lab9-selesai`. Catat cara kerja Claude tanpa skill sebagai pembanding.
+Mulai dari `lab9-selesai`. Lab ini memakai dua prompt: prompt 1 mencatat cara kerja Claude tanpa skill (baseline), prompt 2 menulis skill dari pelanggaran yang terlihat di baseline.
+
+**Tahap 1: baseline tanpa skill**
 
 1. Buka session baru, mode **Accept edits**.
-2. Kirim prompt yang hanya berisi business rule, tanpa urutan kerja:
+2. Kirim prompt 1, yang hanya berisi business rule tanpa urutan kerja:
    > Tambahkan aturan baru: setoran ditolak jika total nominal lebih dari Rp 15.000.000 per transaksi.
 3. Periksa hasilnya dengan checklist berikut: test ditulis sebelum code, test terlihat gagal (RED) sebelum implementasi, ada test di level API, dan laporan akhir memuat bukti test.
 4. Simpan catatan di `docs/skills/baseline-add-deposit-rule.md`.
 5. Kembalikan code dengan `git checkout -- src test`, lalu commit catatan saja.
 
-Hasil acuan: tag `lab10-selesai`. Pada execution trainer, ketiga run tanpa skill tidak menulis test terlebih dahulu (0/3).
+Acuan tahap 1: tag `lab10-baseline`. Pada execution trainer, ketiga run tanpa skill tidak menulis test terlebih dahulu (0/3).
 
-### Lab 11: Skill `add-deposit-rule` dengan writing-skills
-
-Mulai dari `lab10-selesai`. Temuan Lab 10 menjadi bahan prompt.
+**Tahap 2: menulis skill dengan writing-skills**
 
 1. Buka session baru, mode **Manual**.
-2. Kirim prompt (contoh):
-   > Gunakan skill `superpowers:writing-skills` untuk membuat team skill di `.claude/skills/add-deposit-rule/SKILL.md`. Skill dipakai setiap kali kita menambah atau mengubah business rule setoran. Hasil baseline Lab 10: [daftar pelanggaran dari catatan Lab 10]. Description hanya berisi kondisi trigger, dalam bahasa Inggris, diawali "Use when". Sertakan format laporan akhir. Uji skill dengan subagent memakai skenario baseline, lalu validasi dengan `claude plugin validate .claude/skills`.
+2. Kirim prompt 2 (contoh):
+   > Gunakan skill `superpowers:writing-skills` untuk membuat team skill di `.claude/skills/add-deposit-rule/SKILL.md`. Skill dipakai setiap kali kita menambah atau mengubah business rule setoran. Hasil baseline: [daftar pelanggaran dari catatan tahap 1]. Description hanya berisi kondisi trigger, dalam bahasa Inggris, diawali "Use when". Sertakan format laporan akhir. Uji skill dengan subagent memakai skenario baseline, lalu validasi dengan `claude plugin validate .claude/skills`.
 3. Klik **Allow** saat Claude menulis ke `.claude/skills`.
 4. Uji trigger di session baru:
-   - Prompt positif: prompt Lab 10. Transcript harus memuat `Skill add-deposit-rule` tanpa skill disebut di prompt.
+   - Prompt positif: prompt 1. Transcript harus memuat `Skill add-deposit-rule` tanpa skill disebut di prompt.
    - Prompt negatif: "Jelaskan singkat alur reverse setoran di src/deposit.service.ts. Jangan mengubah file apa pun." Skill tidak boleh dimuat.
-5. Bandingkan checklist dengan hasil Lab 10, lalu commit skill saja. Code rule dari uji trigger tidak di-commit.
+5. Bandingkan checklist dengan hasil tahap 1, lalu commit skill saja. Code rule dari uji trigger tidak di-commit.
 
-Hasil acuan: tag `lab11-selesai`.
+Selesai jika catatan baseline di-commit, skill dimuat tanpa disebut di prompt, dan checklist lebih baik dari baseline. Hasil acuan: tag `lab10-selesai`.
 
-### Lab 12: Plugin `deposit-team`
+### Lab 11: Plugin `deposit-team`
 
-Mulai dari `lab11-selesai`. Pindahkan skill ke plugin agar dapat dipasang di repo lain.
+Mulai dari `lab10-selesai`. Pindahkan skill ke plugin agar dapat dipasang di repo lain.
 
 1. Buka session baru, mode **Manual**.
 2. Kirim prompt (contoh):
    > Bungkus project skill di `.claude/skills` menjadi team plugin `deposit-team` di `plugins/deposit-team`, dengan plugin.json berisi name, version, dan description. Pindahkan skill dengan `git mv`. Buat marketplace `.claude-plugin/marketplace.json` bernama `hitachi-deposit`. Validasi plugin dan marketplace, uji lokal dengan `claude plugin marketplace add` dan `claude plugin install`, lalu tunjukkan `claude plugin details deposit-team`. Jangan commit.
 3. Klik **Allow** untuk command `claude plugin`.
 4. Di desktop: tombol `+` di samping prompt box → **Add plugins** → pilih `deposit-team` dan scope.
-5. Jalankan ulang prompt Lab 10 di session baru. Skill dimuat dengan nama `deposit-team:add-deposit-rule`.
+5. Jalankan ulang prompt 1 Lab 10 di session baru. Skill dimuat dengan nama `deposit-team:add-deposit-rule`.
 6. Commit plugin, marketplace, dan README.
 
-Hasil acuan: tag `lab12-selesai`.
+Hasil acuan: tag `lab11-selesai`.
 
-### Lab 13: End-to-end dengan team skill
+### Lab 12: End-to-end dengan team skill
 
-Mulai dari branch `sesi4-part2` (tag `lab13-mulai`), yang sudah berisi skill `review-checklist` dan plugin v0.2.0.
+Mulai dari branch `sesi4-part2` (tag `lab12-mulai`), yang sudah berisi skill `review-checklist` dan plugin v0.2.0.
 
 ```bash
-git checkout -b feature/reject-limit-<nama> lab13-mulai
+git checkout -b feature/reject-limit-<nama> lab12-mulai
 ```
 
 Kirim empat prompt berurutan, mode **Manual**. Setiap tahap diperiksa manusia sebelum lanjut.
@@ -133,7 +133,7 @@ Kirim empat prompt berurutan, mode **Manual**. Setiap tahap diperiksa manusia se
 | Perbaikan dan PR | `Perbaiki temuan [hasil review], run npx vitest run, commit, lalu tulis deskripsi PR. Jangan push.` | Diff, deskripsi PR, lalu push dan buka PR ke `sesi4-part2` |
 | Release | `/deposit-team:prepare-release 0.3.0` | Checklist release yang tidak di-run Claude |
 
-Selesai jika tidak ada temuan berstatus perlu-diperbaiki, PR terbuka, dan `docs/release/v0.3.0.md` tersedia. Jangan merge PR. Hasil acuan: branch `feature/reject-limit` (tag `lab13-selesai`) dan [PR #3](https://github.com/naufaldi/setor-tunai-lab/pull/3).
+Selesai jika tidak ada temuan berstatus perlu-diperbaiki, PR terbuka, dan `docs/release/v0.3.0.md` tersedia. Jangan merge PR. Hasil acuan: branch `feature/reject-limit` (tag `lab12-selesai`) dan [PR #3](https://github.com/naufaldi/setor-tunai-lab/pull/3).
 
 ### Memasang plugin di repo lain
 
