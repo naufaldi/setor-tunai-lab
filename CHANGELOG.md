@@ -4,6 +4,10 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-20
+
+> Draft untuk direview orang.
+
 ### Added
 - Aturan reject: hasil hitung dengan lebih dari 20 lembar reject per setoran ditolak (`TOO_MANY_REJECTS`); nilai reject yang bukan bilangan bulat >= 0 ditolak (`INVALID_REJECTED`).
 
