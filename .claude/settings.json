@@ -1,0 +1,14 @@
+{
+  "extraKnownMarketplaces": {
+    "hitachi-setor-tunai": {
+      "source": {
+        "source": "github",
+        "repo": "naufaldi/setor-tunai-lab",
+        "ref": "sesi4-part2"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "setor-tunai-tim@hitachi-setor-tunai": true
+  }
+}
