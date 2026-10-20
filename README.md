@@ -40,7 +40,7 @@ Butuh Node 22.5 atau lebih baru (memakai `node:sqlite`).
 | Sesi 4 Part 2, Lab 11 selesai | tag `lab11-selesai` | Skill `add-deposit-rule` |
 | Sesi 4 Part 2, Lab 12 selesai | tag `lab12-selesai` | Plugin tim `deposit-team` + marketplace `hitachi-deposit` |
 | Sesi 4 Part 2, awal Lab 13 | `sesi4-part2` (tag `lab13-mulai`) | Plugin v0.2.0 + skill `review-checklist` (context: fork) |
-| Sesi 4 Part 2, Lab 13 selesai | `feature/batas-reject` (tag `lab13-selesai`), PR #2 | Aturan maksimal 20 lembar reject, review, PR, draft release v0.3.0 |
+| Sesi 4 Part 2, Lab 13 selesai | `feature/reject-limit` (tag `lab13-selesai`), PR #3 | Aturan maksimal 20 lembar reject, review, PR, draft release v0.3.0 |
 
 ## Plugin tim (Sesi 4 Part 2)
 
