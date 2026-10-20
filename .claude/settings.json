@@ -1,0 +1,14 @@
+{
+  "extraKnownMarketplaces": {
+    "hitachi-deposit": {
+      "source": {
+        "source": "github",
+        "repo": "naufaldi/setor-tunai-lab",
+        "ref": "sesi4-part2"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "deposit-team@hitachi-deposit": true
+  }
+}
