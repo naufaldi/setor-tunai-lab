@@ -1,4 +1,4 @@
-import { isDenomination, MAX_NOTES_PER_DEPOSIT, type Denomination } from "./money.js";
+import { isDenomination, MAX_NOTES_PER_DEPOSIT, MAX_REJECTED_NOTES_PER_DEPOSIT, type Denomination } from "./money.js";
 
 export type DepositStatus = "OPEN" | "COUNTED" | "PENDING" | "POSTED" | "REVERSED" | "CANCELLED";
 
@@ -57,6 +57,15 @@ export function validateReason(reason: unknown): asserts reason is string {
   }
   if (reason.length > REASON_MAX_LENGTH) {
     throw new DepositError("INVALID_REASON", `reason maksimal ${REASON_MAX_LENGTH} karakter`);
+  }
+}
+
+export function validateRejected(rejected: number): void {
+  if (!Number.isInteger(rejected) || rejected < 0) {
+    throw new DepositError("INVALID_REJECTED", "jumlah lembar reject harus bilangan bulat >= 0");
+  }
+  if (rejected > MAX_REJECTED_NOTES_PER_DEPOSIT) {
+    throw new DepositError("TOO_MANY_REJECTS", `maksimal ${MAX_REJECTED_NOTES_PER_DEPOSIT} lembar reject per setoran`);
   }
 }
 

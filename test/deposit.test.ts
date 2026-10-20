@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { countAmount, validateAccountNo, validateStan, validateTerminalId } from "../src/domain/deposit.js";
+import { countAmount, validateAccountNo, validateRejected, validateStan, validateTerminalId } from "../src/domain/deposit.js";
 
 describe("validateTerminalId", () => {
   it.each(["ATM-0412", "ATM-0219", "ATM-3350", "ATM-0001"])("valid: %s", (t) => expect(() => validateTerminalId(t)).not.toThrow());
@@ -18,6 +18,12 @@ describe("validateAccountNo", () => {
 describe("validateStan", () => {
   it.each(["004417", "000001", "999999"])("valid: %s", (s) => expect(() => validateStan(s)).not.toThrow());
   it.each(["4417", "0044170", "00441a", ""])("tidak valid: '%s'", (s) => expect(() => validateStan(s)).toThrow(/STAN/));
+});
+
+describe("validateRejected", () => {
+  it.each([0, 1, 19, 20])("menerima %i lembar reject", (n) => expect(() => validateRejected(n)).not.toThrow());
+  it.each([21, 50])("menolak %i lembar reject (lebih dari 20)", (n) => expect(() => validateRejected(n)).toThrow(/20 lembar/));
+  it.each([-1, 1.5])("menolak reject tidak valid: %s", (n) => expect(() => validateRejected(n)).toThrow(/bilangan bulat/));
 });
 
 describe("countAmount", () => {

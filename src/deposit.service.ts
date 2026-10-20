@@ -3,6 +3,7 @@ import type { Db } from "./db.js";
 import {
   canConfirm,
   countAmount,
+  validateRejected,
   DepositError,
   validateAccountNo,
   validateActor,
@@ -66,6 +67,7 @@ export function createDepositService(db: Db, now: Clock = systemClock) {
     const dep = get(id);
     if (dep.status !== "OPEN") throw new DepositError("INVALID_STATE", `status ${dep.status} tidak bisa dihitung ulang`);
     const amount = countAmount(input.notes);
+    validateRejected(input.rejected ?? 0);
     db.prepare(
       "UPDATE deposits SET status = 'COUNTED', notes_json = ?, rejected_notes = ?, amount = ? WHERE id = ?",
     ).run(JSON.stringify(input.notes), input.rejected ?? 0, amount, id);
