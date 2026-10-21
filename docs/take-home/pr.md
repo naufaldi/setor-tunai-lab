@@ -84,6 +84,10 @@ Dari `/deposit-team:review-checklist` (selengkapnya di `docs/take-home/review.md
 
 ## Diperiksa manual oleh reviewer
 
-_Diisi oleh reviewer manusia._
+Diisi oleh trainer (manusia), bukan oleh Claude.
 
-- [ ] 
+- [x] Keputusan D1-D8 di PRD sesuai jawaban interview.
+- [x] Asumsi D8 (hari dari `created_at`) dicatat sebagai follow-up untuk konfirmasi bisnis.
+- [x] Output RED direkonstruksi, bukan log asli saat TDD. Diterima, karena test terbukti gagal terhadap code sebelum fitur.
+- [x] Tidak ada nomor rekening lengkap di pesan error dan log.
+- [x] CI `test` lulus di PR ini.
