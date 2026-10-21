@@ -27,19 +27,17 @@ Butuh Node 22.5 atau lebih baru (memakai `node:sqlite`).
 
 | Sesi / Lab | Branch atau tag | Isi |
 |---|---|---|
-| Sesi 4 Part 1, awal | `main` | Kondisi awal: insiden INC-2026-1014-01 belum diperbaiki, CLAUDE.md panjang |
-| Sesi 4 Part 1, Lab 1-3 selesai | tag `lab3-selesai` | Perbaikan idempotency + test, CLAUDE.md ramping, subagent log-analyst |
-| Sesi 4 Part 1, solusi Lab 1-3 | `sesi4-part1-solution` | Sama dengan `lab3-selesai` |
-| Sesi 4 Part 1, awal Lab 4 (Superpowers) | `sesi4-superpowers-start` (= tag `lab4-selesai`) | `lab3-selesai` + workflow CI |
-| Lab 5 selesai | tag `lab5-selesai` | Design doc `docs/superpowers/specs/` (brainstorming) |
-| Lab 6 selesai | tag `lab6-selesai` | Plan `docs/superpowers/plans/` (writing-plans) |
-| Lab 7 selesai | tag `lab7-selesai` | 6 task dikerjakan subagent, test hijau |
-| Lab 8 selesai | `feature/pending-reversal` (= tag `lab8-selesai`) | Perbaikan dari code review, PR ke `sesi4-superpowers-start` |
+| Sesi 4 Part 1, awal Lab 1 | `main` | Kondisi awal: insiden INC-2026-1014-01 belum diperbaiki, CLAUDE.md panjang |
+| Sesi 4 Part 1, Lab 1 selesai | `sesi4-part1-solution` | Perbaikan idempotency + test, lean CLAUDE.md, subagent log-analyst, catatan token |
+| Sesi 4 Part 1, awal Lab 2 | `sesi4-superpowers-start` | Hasil Lab 1 + workflow CI test |
+| Sesi 4 Part 1, Lab 2 selesai | `feature/pending-reversal`, PR #1 | Design doc, plan, 6 task oleh subagent, perbaikan dari code review, 167 test |
 | Sesi 4 Part 2, Lab 9 selesai | tag `lab9-selesai` | Skill `/prepare-release` + draft release v0.2.0 |
 | Sesi 4 Part 2, Lab 10 tahap baseline | tag `lab10-baseline` | Catatan baseline di `docs/skills/` |
 | Sesi 4 Part 2, Lab 10 selesai | tag `lab10-selesai` | Skill `add-deposit-rule` |
 | Sesi 4 Part 2, Lab 11 selesai | tag `lab11-selesai` | Team plugin `deposit-team` + marketplace `hitachi-deposit` |
 | Sesi 4 Part 2, awal Lab 12 | `sesi4-part2` (tag `lab12-mulai`) | Plugin v0.2.2 + skill `review-checklist` (context: fork) |
 | Sesi 4 Part 2, Lab 12 selesai | `feature/reject-limit` (tag `lab12-selesai`), PR #3 | Aturan maksimal 20 lembar reject, review, PR, draft release v0.3.0 |
+
+Tag `lab1-selesai` sampai `lab8-selesai` memakai penomoran lama Part 1 (8 lab) dan tetap ada karena panduan Part 2 dimulai dari `lab8-selesai` (= `feature/pending-reversal`). Deck Part 1 sekarang memakai 2 lab dengan branch di atas.
 
 Panduan langkah Lab 9-12 dan cara memasang plugin `deposit-team` ada di README branch [`sesi4-part2`](https://github.com/naufaldi/setor-tunai-lab/tree/sesi4-part2#panduan-sesi-4-part-2-reusable-claude-code-skills).
