@@ -12,6 +12,7 @@ import {
   type Deposit,
   type NoteCount,
 } from "./domain/deposit.js";
+import { assertWithinDailyLimit, wibDayBounds } from "./domain/daily-limit.js";
 import { CASH_IN_MACHINE, entriesByRef, hasEntries, postDepositEntries, postReversalEntries } from "./ledger.js";
 
 type Clock = () => string;
@@ -62,10 +63,22 @@ export function createDepositService(db: Db, now: Clock = systemClock) {
     return get(id);
   }
 
+  // Total setoran POSTED + PENDING rekening ini pada hari WIB yang memuat createdAt, di luar setoran excludeId.
+  function usedToday(accountNo: string, createdAt: string, excludeId: string): number {
+    const { fromUtc, toUtc } = wibDayBounds(createdAt);
+    const row = db
+      .prepare(
+        "SELECT COALESCE(SUM(amount), 0) AS total FROM deposits WHERE account_no = ? AND status IN ('POSTED','PENDING') AND created_at >= ? AND created_at < ? AND id <> ?",
+      )
+      .get(accountNo, fromUtc, toUtc, excludeId) as { total: number };
+    return Number(row.total);
+  }
+
   function recordCount(id: string, input: { notes: { denom: number; qty: number }[]; rejected?: number }): Deposit {
     const dep = get(id);
     if (dep.status !== "OPEN") throw new DepositError("INVALID_STATE", `status ${dep.status} tidak bisa dihitung ulang`);
     const amount = countAmount(input.notes);
+    assertWithinDailyLimit(usedToday(dep.accountNo, dep.createdAt, id), amount);
     db.prepare(
       "UPDATE deposits SET status = 'COUNTED', notes_json = ?, rejected_notes = ?, amount = ? WHERE id = ?",
     ).run(JSON.stringify(input.notes), input.rejected ?? 0, amount, id);
@@ -76,29 +89,33 @@ export function createDepositService(db: Db, now: Clock = systemClock) {
   // CRM mengirim ulang (retry) jika host tidak membalas dalam 30 detik.
   function confirm(id: string, input: { requestId: string; stan: string }): Deposit {
     validateStan(input.stan);
-    const seen = db.prepare("SELECT deposit_id FROM host_requests WHERE request_id = ?").get(input.requestId) as
-      | { deposit_id: string }
-      | undefined;
-    if (seen) return get(seen.deposit_id);
+    // Transaksi: bila cek batas gagal, tidak ada baris host_requests tersisa, jadi retry requestId yang sama dievaluasi ulang.
+    return inTransaction(() => {
+      const seen = db.prepare("SELECT deposit_id FROM host_requests WHERE request_id = ?").get(input.requestId) as
+        | { deposit_id: string }
+        | undefined;
+      if (seen) return get(seen.deposit_id);
 
-    const dep = get(id);
-    // Retry CRM memakai requestId baru dengan STAN sama: setoran sudah diposting, jangan posting lagi.
-    if (dep.status === "POSTED" && dep.stan === input.stan) return dep;
-    if (!canConfirm(dep)) throw new DepositError("INVALID_STATE", `status ${dep.status} tidak bisa dikonfirmasi`);
+      const dep = get(id);
+      // Retry CRM memakai requestId baru dengan STAN sama: setoran sudah diposting, jangan posting lagi.
+      if (dep.status === "POSTED" && dep.stan === input.stan) return dep;
+      if (!canConfirm(dep)) throw new DepositError("INVALID_STATE", `status ${dep.status} tidak bisa dikonfirmasi`);
+      assertWithinDailyLimit(usedToday(dep.accountNo, dep.createdAt, id), dep.amount);
 
-    const at = now();
-    db.prepare(
-      "INSERT INTO host_requests (request_id, deposit_id, terminal_id, stan, created_at) VALUES (?, ?, ?, ?, ?)",
-    ).run(input.requestId, id, dep.terminalId, input.stan, at);
-    postDepositEntries(db, {
-      terminalId: dep.terminalId,
-      accountNo: dep.accountNo,
-      amount: dep.amount,
-      ref: `${dep.terminalId}/${input.stan}`,
-      at,
+      const at = now();
+      db.prepare(
+        "INSERT INTO host_requests (request_id, deposit_id, terminal_id, stan, created_at) VALUES (?, ?, ?, ?, ?)",
+      ).run(input.requestId, id, dep.terminalId, input.stan, at);
+      postDepositEntries(db, {
+        terminalId: dep.terminalId,
+        accountNo: dep.accountNo,
+        amount: dep.amount,
+        ref: `${dep.terminalId}/${input.stan}`,
+        at,
+      });
+      db.prepare("UPDATE deposits SET status = 'POSTED', stan = ? WHERE id = ? AND status = 'COUNTED'").run(input.stan, id);
+      return get(id);
     });
-    db.prepare("UPDATE deposits SET status = 'POSTED', stan = ? WHERE id = ? AND status = 'COUNTED'").run(input.stan, id);
-    return get(id);
   }
 
   function inTransaction<T>(fn: () => T): T {
