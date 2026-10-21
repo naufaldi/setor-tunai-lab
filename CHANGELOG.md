@@ -4,6 +4,13 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-20
+
+> Draft untuk direview orang.
+
+### Changed
+- Hasil hitung (`count`) dengan lebih dari 20 lembar reject kini ditolak dengan error `TOO_MANY_REJECTS` (HTTP 400). Batas: `MAX_REJECTED_PER_DEPOSIT = 20`; tepat 20 masih diterima.
+
 ## [0.2.0] - 2026-10-20
 
 > Draft untuk direview orang.
