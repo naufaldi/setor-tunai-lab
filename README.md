@@ -41,3 +41,62 @@ Butuh Node 22.5 atau lebih baru (memakai `node:sqlite`).
 Tag `lab1-selesai` sampai `lab8-selesai` memakai penomoran lama Part 1 (8 lab) dan tetap ada karena panduan Part 2 dimulai dari `lab8-selesai` (= `feature/pending-reversal`). Deck Part 1 sekarang memakai 2 lab dengan branch di atas.
 
 Panduan langkah Lab 9-12 dan cara memasang plugin `deposit-team` ada di README branch [`sesi4-part2`](https://github.com/naufaldi/setor-tunai-lab/tree/sesi4-part2#panduan-sesi-4-part-2-reusable-claude-code-skills).
+
+## Panduan Sesi 4 Part 1
+
+Langkah dan prompt di bawah sama dengan deck dan sudah diuji ulang dari awal pada 21 Okt 2026 (Claude Code, Sonnet 5.5, rtk 1.0.1, superpowers 7.0.0). Angka token dan jumlah test di laptop kita bisa berbeda.
+
+### Lab 1: Menyelesaikan insiden secara efisien
+
+Mulai dari `main`. Bandingkan hasil dengan baris Baseline di `docs/catatan-token.md`.
+
+1. Install RTK, lalu pasang hook global. `--auto-patch` wajib jika `rtk init` dijalankan oleh Claude, karena tanpa itu hook tidak ditulis.
+   ```bash
+   rtk init -g --auto-patch
+   rtk gain --reset --yes
+   ```
+2. Lean CLAUDE.md dan subagent. Boleh dikerjakan Claude di session terpisah:
+   ```text
+   Buat CLAUDE.md di repo ini lebih ringkas, maksimal 60 baris. Pertahankan hanya yang berlaku di setiap task: command test dan typecheck, struktur folder, dan aturan ledger. Pindahkan prosedur release, prosedur migrasi, format pesan host, checklist review PR, onboarding, dan glosarium ke file terpisah di docs/, lalu tulis satu baris rujukan untuk masing-masing di CLAUDE.md.
+   Setelah itu buat subagent .claude/agents/log-analyst.md dengan model haiku dan tools Read, Grep, Bash. Tugasnya mencari event di journal mesin CRM (logs/) dan baris ledger export (data/) dengan grep, tidak membaca file utuh, lalu mengembalikan summary singkat berisi urutan event dan baris yang relevan.
+   Jangan ubah src/ dan test/. Jalankan npx vitest run sebagai bukti, lalu commit dengan pesan "chore: lean CLAUDE.md dan subagent log-analyst".
+   ```
+3. Mulai session baru (`/clear`), catat context awal di panel Context, lalu kirim:
+   ```text
+   Kerjakan insiden @docs/insiden/INC-2026-1014-01.md.
+   1. Pakai subagent log-analyst untuk mencari urutan event STAN 004417 di logs/journal-ATM-0412-20261014.log dan baris ledger dengan ref ATM-0412/004417 di data/ledger-export-20261014.csv. Minta summary saja.
+   2. Alur konfirmasi ada di src/deposit.service.ts. Tulis dulu test yang gagal di test/deposit.service.test.ts untuk kasus dari journal, lalu perbaiki code.
+   3. Jalankan npx vitest run dan tunjukkan summary hasilnya sebagai bukti.
+   Batasan: jangan membaca file log utuh, jangan mengubah ledger.ts.
+   ```
+4. Isi baris Lab 1 di `docs/catatan-token.md` (context akhir, memory files, `rtk gain`), lalu commit.
+
+Selesai jika test baru gagal sebelum fix lalu semua test pass. Contoh hasil: branch `sesi4-part1-solution`.
+
+### Lab 2: Fitur pending dan reversal dengan Superpowers
+
+Mulai dari `sesi4-superpowers-start`. Pastikan `git config user.name` dan `user.email` sudah diisi di repo sebelum Claude membuat commit.
+
+1. Install Superpowers (mode Manual, baca setiap command sebelum Allow):
+   ```text
+   Install plugin Superpowers (https://github.com/obra/superpowers) untuk Claude Code di scope user. Pakai CLI claude plugin: tambahkan marketplace obra/superpowers-marketplace, lalu install superpowers dari marketplace itu. Setelah itu tunjukkan hasil claude plugin details superpowers@superpowers-marketplace sebagai bukti: versi, jumlah skill, dan token always-on. Jangan ubah file di repo.
+   ```
+2. Mulai session baru, pindah ke mode Accept edits, lalu kirim:
+   ```text
+   Kita mau menambah fitur di setor-tunai-lab: setoran yang host-nya timeout atau uangnya ditolak mesin harus masuk status PENDING, lalu bisa dibatalkan lewat reversal supaya ledger tetap benar. Brainstorming dulu sebelum menulis code.
+   ```
+   Jawab pertanyaan Claude satu per satu, lalu baca design doc di `docs/superpowers/specs/`, terutama bagian keputusan yang dibuat Claude.
+3. Approve design, lalu baca plan:
+   ```text
+   Design doc sudah saya baca dan sesuai. Commit doc-nya, lalu susun plan.
+   ```
+4. Approve plan, lalu execution dengan subagent (sekitar 10-15 menit):
+   ```text
+   Plan sudah saya baca dan setuju. Commit plan-nya, lalu execution dengan subagent-driven di branch feature/pending-reversal, tanpa worktree. Berhenti setelah semua task selesai, jangan merge.
+   ```
+5. Verify, review, dan finishing:
+   ```text
+   Verifikasi dengan npm run typecheck dan npx vitest run, tunjukkan ringkasan output-nya, dan cek test lama tidak berubah (git diff sesi4-superpowers-start -- test). Minta code review untuk feature/pending-reversal terhadap sesi4-superpowers-start, tindak lanjuti temuan penting. Finishing: pilih push dan buat Pull Request. Jangan merge.
+   ```
+
+Selesai jika setiap task punya commit sendiri, test lama tidak berubah, semua test pass, dan PR dengan CI pass belum di-merge. Contoh hasil: branch `feature/pending-reversal` dan PR #1.
