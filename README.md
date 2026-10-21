@@ -41,6 +41,8 @@ Butuh Node 22.5 atau lebih baru (memakai `node:sqlite`).
 | Sesi 4 Part 2, Lab 11 selesai | tag `lab11-selesai` | Team plugin `deposit-team` + marketplace `hitachi-deposit` |
 | Sesi 4 Part 2, awal Lab 12 | `sesi4-part2` (tag `lab12-mulai`) | Plugin v0.2.2 + skill `review-checklist` (context: fork) |
 | Sesi 4 Part 2, Lab 12 selesai | `feature/reject-limit` (tag `lab12-selesai`), PR #3 | Aturan maksimal 20 lembar reject, review, PR, draft release v0.3.0 |
+| Take-home, awal | `take-home-start` | Titik awal take-home (sama dengan `sesi4-part2`) |
+| Take-home, contoh hasil | `take-home-solution` | Contoh hasil trainer: PRD, plan, code, review, PR |
 
 ## Panduan Sesi 4 Part 2: Reusable Claude Code Skills
 
@@ -163,3 +165,39 @@ Di Claude desktop (tab Code, local session): `+` → **Add plugins** → `deposi
 | `deposit-team:prepare-release` | Manual: `/deposit-team:prepare-release <versi>` |
 
 Repo ini sudah mengaktifkan plugin untuk project di `.claude/settings.json`. Setiap anggota tim tetap menjalankan `claude plugin install deposit-team@hitachi-deposit --scope project` satu kali. Auto-update untuk marketplace pihak ketiga nonaktif secara default, jadi update dilakukan dengan `claude plugin update deposit-team@hitachi-deposit`.
+
+## Take-home: SDLC dengan AI, dari PRD sampai PR
+
+Take-home ini dikerjakan setelah Sesi 4 Part 2, secara individu, dengan target waktu 3-4 jam. Setiap peserta membuat satu fitur kecil memakai Claude desktop (tab Code, local session) dan team plugin `deposit-team`, lalu mengumpulkan link PR di fork masing-masing.
+
+**Fitur:** batas setoran harian per rekening. Total setoran tunai melalui mesin CRM untuk satu rekening tidak boleh melebihi Rp 50.000.000 per hari. Detail aturannya (hari dihitung dengan zona waktu apa, status setoran mana yang dihitung, kapan aturan diperiksa, kode error) diputuskan saat menyusun PRD.
+
+### Persiapan
+
+1. Fork repo ini, lalu clone fork tersebut. Aktifkan GitHub Actions di tab **Actions** fork (nonaktif secara default untuk fork).
+2. Checkout branch awal dan buat branch kerja:
+   ```bash
+   git checkout take-home-start
+   git checkout -b take-home/<nama>
+   npm install && npm test
+   ```
+3. Pastikan plugin `deposit-team` terpasang dan versi terbaru (lihat [Memasang plugin di repo lain](#memasang-plugin-di-repo-lain)).
+
+### Fase dan artifact
+
+| Fase | Yang dikerjakan | Artifact | Titik approval |
+|---|---|---|---|
+| 1. PRD | Claude mewawancarai kita, lalu menulis PRD dengan acceptance criteria | `docs/take-home/prd.md` | Kita menyetujui keputusan bisnis di PRD |
+| 2. Plan | Plan mode: file yang diubah, urutan test-first, risiko | `docs/take-home/plan.md` | Kita menyetujui plan sebelum ada code |
+| 3. Implementasi | Test ditulis dan gagal terlebih dahulu, lalu implementasi. Skill `add-deposit-rule` dimuat otomatis | Code dan test | Kita memeriksa diff dan bukti RED/GREEN |
+| 4. Review | `/deposit-team:review-checklist`, lalu temuan diperbaiki | `docs/take-home/review.md` | Kita memutuskan temuan yang diperbaiki |
+| 5. PR | Claude menulis deskripsi PR, kita push dan membuka PR ke `take-home-start` di fork | PR + `docs/take-home/pr.md` | CI `test` lulus, PR tidak di-merge |
+| 6. Refleksi | Ditulis sendiri, bukan oleh Claude | `docs/take-home/refleksi.md` | Koreksi yang kita lakukan dan biaya dari `/usage` |
+
+### Yang dikumpulkan
+
+- Link PR di fork (dari `take-home/<nama>` ke `take-home-start`).
+- Folder `docs/take-home/` berisi `prd.md`, `plan.md`, `review.md`, `pr.md`, dan `refleksi.md`.
+- 3-5 screenshot di deskripsi PR: interview PRD, tabel review, dan output test.
+
+Contoh hasil dari trainer ada di branch `take-home-solution` dan PR-nya. Gunakan sebagai acuan bentuk, bukan untuk disalin: keputusan di PRD boleh berbeda selama alasannya ditulis.
