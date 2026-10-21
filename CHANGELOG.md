@@ -4,6 +4,13 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 
 ## [Unreleased]
 
+### Added
+- Batas setoran harian Rp 50.000.000 per rekening (hari WIB, semua terminal). Dihitung dari setoran `POSTED` dan `PENDING`, dicek di `recordCount` dan `confirm`.
+- Kode error `DAILY_LIMIT_EXCEEDED` (HTTP 400), pesan memuat sisa kuota. Belum dipetakan ke response code host.
+
+### Changed
+- `confirm` kini berjalan dalam transaksi; retry idempoten tetap lolos tanpa cek batas.
+
 ## [0.2.0] - 2026-10-20
 
 > Draft untuk direview orang.

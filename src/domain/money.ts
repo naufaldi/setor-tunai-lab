@@ -11,3 +11,6 @@ export function isDenomination(value: number): value is Denomination {
 export function formatRupiah(amount: number): string {
   return "Rp " + amount.toLocaleString("id-ID");
 }
+
+// Batas total setoran POSTED + PENDING per rekening per hari WIB (integer rupiah).
+export const DAILY_DEPOSIT_LIMIT = 50_000_000;
