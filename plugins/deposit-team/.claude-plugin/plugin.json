@@ -1,7 +1,7 @@
 {
   "name": "deposit-team",
   "description": "Skill tim untuk API setoran tunai CRM: siapkan release dan tambah aturan setoran.",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "author": {
     "name": "Tim Software Application"
   }

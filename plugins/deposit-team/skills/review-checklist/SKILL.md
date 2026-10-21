@@ -10,9 +10,9 @@ agent: Explore
 
 Sumber checklist: `docs/checklist-review.md`. Baca file itu dulu, lalu cek setiap butirnya terhadap perubahan di bawah. Jangan mengubah file apa pun.
 
-## Perubahan (branch ini terhadap sesi4-part2)
+## Perubahan (working tree dan commit branch ini terhadap origin/sesi4-part2)
 
-!`git diff sesi4-part2...HEAD`
+!`git diff origin/sesi4-part2`
 
 ## Langkah
 

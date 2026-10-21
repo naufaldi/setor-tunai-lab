@@ -39,7 +39,7 @@ Butuh Node 22.5 atau lebih baru (memakai `node:sqlite`).
 | Sesi 4 Part 2, Lab 10 tahap baseline | tag `lab10-baseline` | Catatan baseline di `docs/skills/` |
 | Sesi 4 Part 2, Lab 10 selesai | tag `lab10-selesai` | Skill `add-deposit-rule` |
 | Sesi 4 Part 2, Lab 11 selesai | tag `lab11-selesai` | Team plugin `deposit-team` + marketplace `hitachi-deposit` |
-| Sesi 4 Part 2, awal Lab 12 | `sesi4-part2` (tag `lab12-mulai`) | Plugin v0.2.0 + skill `review-checklist` (context: fork) |
+| Sesi 4 Part 2, awal Lab 12 | `sesi4-part2` (tag `lab12-mulai`) | Plugin v0.2.2 + skill `review-checklist` (context: fork) |
 | Sesi 4 Part 2, Lab 12 selesai | `feature/reject-limit` (tag `lab12-selesai`), PR #3 | Aturan maksimal 20 lembar reject, review, PR, draft release v0.3.0 |
 
 ## Panduan Sesi 4 Part 2: Reusable Claude Code Skills
@@ -67,7 +67,7 @@ Mulai dari `lab8-selesai`. Buat project skill dari `docs/prosedur-release.md`.
 
 1. Buka session baru, mode **Manual**.
 2. Kirim prompt (contoh):
-   > Buat project skill baru di `.claude/skills/prepare-release/SKILL.md` berdasarkan `docs/prosedur-release.md`. Hanya dipanggil manual dengan `/prepare-release <versi>` (`disable-model-invocation: true`, `argument-hint`). Ambil daftar commit dengan `` !`command` ``. Tulis `CHANGELOG.md` dan `docs/release/v<versi>.md`. Langkah yang memerlukan manusia dimasukkan ke checklist dan tidak di-run. Jangan push, jangan tag. Validasi dengan `claude plugin validate .claude/skills` dan tunjukkan isi SKILL.md.
+   > Buat project skill baru di `.claude/skills/prepare-release/SKILL.md` berdasarkan `docs/prosedur-release.md`. Hanya dipanggil manual dengan `/prepare-release <versi>` (`disable-model-invocation: true`, `argument-hint`). Ambil daftar commit sejak tag release v* terakhir dengan `` !`command` ``. Tag lab*-selesai bukan tag release; jika belum ada tag v*, ambil 15 commit terakhir. Tulis `CHANGELOG.md` dan `docs/release/v<versi>.md`. Langkah yang memerlukan manusia dimasukkan ke checklist dan tidak di-run. Jangan push, jangan tag. Validasi dengan `claude plugin validate .claude/skills` dan tunjukkan isi SKILL.md.
 3. Klik **Allow** saat Claude menulis ke `.claude/skills` (folder `.claude` selalu meminta izin).
 4. Ketik `/prep` dan pastikan skill muncul di menu, lalu jalankan `/prepare-release 0.2.0`.
 5. Review draft, lalu commit skill dan draft. Jangan membuat tag.
@@ -98,6 +98,7 @@ Acuan tahap 1: tag `lab10-baseline`. Pada execution trainer, ketiga run tanpa sk
 4. Uji trigger di session baru:
    - Prompt positif: prompt 1. Transcript harus memuat `Skill add-deposit-rule` tanpa skill disebut di prompt.
    - Prompt negatif: "Jelaskan singkat alur reverse setoran di src/deposit.service.ts. Jangan mengubah file apa pun." Skill tidak boleh dimuat.
+   - Claude dapat berhenti dan bertanya karena test lama 200 × Rp 100.000 bertentangan dengan aturan baru. Ini perilaku yang diminta skill. Jawab untuk melanjutkan.
 5. Bandingkan checklist dengan hasil tahap 1, lalu commit skill saja. Code rule dari uji trigger tidak di-commit.
 
 Selesai jika catatan baseline di-commit, skill dimuat tanpa disebut di prompt, dan checklist lebih baik dari baseline. Hasil acuan: tag `lab10-selesai`.
@@ -118,11 +119,16 @@ Hasil acuan: tag `lab11-selesai`.
 
 ### Lab 12: End-to-end dengan team skill
 
-Mulai dari branch `sesi4-part2` (tag `lab12-mulai`), yang sudah berisi skill `review-checklist` dan plugin v0.2.0.
+Mulai dari branch `sesi4-part2` (tag `lab12-mulai`), yang sudah berisi skill `review-checklist` dan plugin v0.2.2.
 
 ```bash
 git checkout -b feature/reject-limit-<nama> lab12-mulai
+# perbarui plugin ke versi di branch sesi4-part2
+claude plugin marketplace update hitachi-deposit
+claude plugin update deposit-team@hitachi-deposit
 ```
+
+Jika marketplace `hitachi-deposit` belum ada, pasang terlebih dahulu (lihat [Memasang plugin di repo lain](#memasang-plugin-di-repo-lain)). Ketik `/deposit-team:` di session baru dan pastikan tiga skill muncul.
 
 Kirim empat prompt berurutan, mode **Manual**. Setiap tahap diperiksa manusia sebelum lanjut.
 
